@@ -1,4 +1,7 @@
 # -*- coding: UTF-8 -*-
+"""
+Dirty little implementation of a snake like game.
+"""
 import argparse
 import random
 
@@ -108,13 +111,15 @@ def main():
                 elif event.key == pygame.K_RIGHT:
                     if not cur_dir == dir_left:
                         cur_dir = dir_right
-                elif event.key == pygame.K_l:
-                    l += 5
                 elif event.key == pygame.K_r:
                     state = "reset"
+                elif event.key == pygame.K_l:
+                    if dev_on:
+                        l += 5
                 elif event.key == pygame.K_w:
-                    state = "win"
-                    l = 0
+                    if dev_on:
+                        state = "win"
+                        l = 0
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # mouse events -- need to down-scale position to internal surface
                 # but then again, mouse does not make sense with the wall
