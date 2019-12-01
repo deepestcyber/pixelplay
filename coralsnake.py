@@ -1,6 +1,5 @@
 # -*- coding: UTF-8 -*-
 import argparse
-import optparse
 import random
 
 import pygame
@@ -36,7 +35,8 @@ def main():
     # need to shut down mixer. It get's started with pygame.init() and eats up 100% cpu
     pygame.mixer.quit()
 
-    #parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Coral Snake for LED Tetris Wall")
+    parser.add_argument("-d", "--dev", action="store_true", help="Activate development mode")
     #parser = optparse.OptionParser("usage: %prog [options]")
     #parser.add_option("-H", "--host", dest="hostname",
     #                  default=None, type="string",
@@ -45,7 +45,21 @@ def main():
     # instead of pygame.display.setmode() we use a wrapper, supplied by pixelplay
     # pixelplay.get_screen() will just build a screen
     # pixelplay.from_commandline() will parse parameters for remote host
-    screen, (options, args) = pixelplay.from_commandline()
+    screen, args = pixelplay.from_commandline(parser)
+
+    dev_on = args.dev
+
+    print("Coral Snake for LED Tetris Wall")
+    print("===============================")
+    print("Your head is red. Eat the white dots. Do not bite yourself!")
+    print("'up', 'down', 'left', 'right' to move.")
+    print("'Esc' for exit")
+    print("'r' for reset")
+    if dev_on:
+        print("Dev mode is activated!")
+        print("'l' to grow")
+        print("'w' to just win")
+    print("\nNow et those noms!")
 
     pygame.display.set_caption("Coral Snake")
     # frame rate controller:
