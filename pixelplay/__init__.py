@@ -33,6 +33,7 @@ def get_screen(size=None, zoom=16, remote=None):
     else:
         screen_size = (size[0] * zoom, size[1] * zoom)
     screen = pygame.display.set_mode(screen_size)
+    pixels = pygame.surfarray.pixels3d(surface)
     # screen.set_masks((0xff0000, 0x00ff00, 0x0000ff, 0x000000))
     # screen.set_masks((0x0000ff, 0x00ff00, 0xff0000, 0x000000))
     original_flip = pygame.display.flip
@@ -57,8 +58,8 @@ def get_screen(size=None, zoom=16, remote=None):
         original_flip()
         sock = get_socket()
         if sock is not None:
-            encoded = base64.b64encode(surface.get_buffer().raw)
-            sock.send(b"SF " + encoded + b"\n")
+            encoded = base64.b64encode(pixels.flatten("K"))
+            sock.send(b"WL " + encoded + b"\n")
 
     pygame.display.flip = new_flip
 
