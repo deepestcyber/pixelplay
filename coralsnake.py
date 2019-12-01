@@ -40,6 +40,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Coral Snake for LED Tetris Wall")
     parser.add_argument("-d", "--dev", action="store_true", help="Activate development mode")
+    parser.add_argument("-i", "--iddqd", action="store_true", help="Activate god mode")
     #parser = optparse.OptionParser("usage: %prog [options]")
     #parser.add_option("-H", "--host", dest="hostname",
     #                  default=None, type="string",
@@ -51,6 +52,7 @@ def main():
     screen, args = pixelplay.from_commandline(parser)
 
     dev_on = args.dev
+    godmode = args.iddqd
 
     print("Coral Snake for LED Tetris Wall")
     print("===============================")
@@ -62,6 +64,8 @@ def main():
         print("Dev mode is activated!")
         print("'l' to grow")
         print("'w' to just win")
+    if godmode:
+        print("THERE CAN BE ONLY ONE!")
     print("\nNow et those noms!")
 
     pygame.display.set_caption("Coral Snake")
@@ -143,6 +147,8 @@ def main():
         elif state == "win":
             tlen = h*2 + w*2 - 4
             if l == 0:
+                print("You WON!")
+                print("press 'r' to restart")
                 pa[:, :, :] //= 4
             p = l % tlen
             c = pygame.Color(0)
@@ -182,16 +188,18 @@ def main():
             if dest_col[1] > 0:
                 if cur_dir != dir_stop:
                     # hit pix with snake body
-                    print("DIE!")
-                    l = 0
-                    state = "die"
+                    if godmode:
+                        print("I CANNOT DIE!")
+                    else:
+                        print("DIE!")
+                        l = 0
+                        state = "die"
             elif dest_col[2] > 30:
                 # hit food
                 print("nom")
                 place_food(pa, pos)
                 l += 3
             if l >= 100:
-                print("WIN!")
                 state = "win"
                 l = 0
             # draw head to new position:
