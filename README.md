@@ -27,3 +27,11 @@ Use `screen, parser = pixelplay.from_commandline()` have your program
 automatically parse the commandline and potentially connect to the 
 given host for the wall. See example games for usage.
 
+
+# Master
+Master is a simple tool to select games using only a gamepad.
+
+# TODO
+* master needs argparse
+* dc logo in master
+* logos displayed on wall during selection
