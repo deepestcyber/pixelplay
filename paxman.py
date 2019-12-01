@@ -116,7 +116,6 @@ class Ghost:
 
     def revive(self, screen):
         if self.dead:
-            #print(self.num, self.dead_cnt, self.home)
             if self.dead_cnt > 0:
                 self.dead_cnt -= 1
             if self.dead_cnt <= 0:
@@ -162,9 +161,6 @@ def ghost_at(ghosts, pos):
     return None
 
 
-ghosts = []
-
-
 def main():
     pygame.init()
     pygame.mixer.quit()
@@ -172,105 +168,22 @@ def main():
     clock = pygame.time.Clock()
 
     running = True
-    pos = (8, 10)
-    ku, kd, kl, kr = (False, False, False, False)
     n = 0
-    screen.fill(c_floor)
-    dots = 0
+    ghosts = []
     delay = 0
     invis = 0
-    INVIS_TIME = 180 * 1000
-    for y in range(screen.get_height()):
-        for x in range(screen.get_width()):
-            c = board[y][x]
-            if c == "#":
-                screen.set_at((x, y), c_wall)
-            elif c == ".":
-                dots += 1
-                screen.set_at((x, y), c_dot)
-            elif c == "c":
-                pos = (x, y)
-            elif c == "o":
-                dots += 1
-                screen.set_at((x, y), c_power)
-            elif c == "m":
-                ghosts.append(Ghost((x, y)))
+    ku, kd, kl, kr = (False, False, False, False)
+    dots = 0
+    pos = (8, 10)
+    INVIS_TIME = 180
+
     state = "reset"
     # loop
     while running:
-        n += 1
-        if invis:
-            invis -= 1
-        dest = None
-        if delay:
-            delay -= 1
-        else:
-            if ku:
-                dest = pos[0], (pos[1] - 1) % screen.get_height()
-            elif kd:
-                dest = pos[0], (pos[1] + 1) % screen.get_height()
-            elif kl:
-                dest = (pos[0] - 1) % screen.get_width(), pos[1]
-            elif kr:
-                dest = (pos[0] + 1) % screen.get_width(), pos[1]
-        if dest is not None:
-            ghost = ghost_at(ghosts, dest)
-            if ghost:
-                # eat what is below flor
-                at_dest = ghost.below
-            else:
-                at_dest = screen.get_at(dest)
-            if at_dest == c_wall:
-                # cannot enter walls
-                pass
-            else:
-                if at_dest == c_power:
-                    invis = INVIS_TIME
-                if at_dest == c_dot or at_dest == c_power:
-                    dots -= 1
-                    print("Dots:", dots)
-                    if dots == 0:
-                        print("WIN!")
-                screen.set_at(pos, c_floor)
-                pos = dest
-                delay = 3
-
-        screen.set_at(pos, c_pax)
-        for ghost in ghosts:
-            ghost.revive(screen)
-            if ghost.dead:
-                continue
-            prev = ghost.pos
-            if prev == pos:
-                # player moved onto ghost
-                if invis:
-                    print("nom 1")
-                    ghost.die()
-                    continue
-                else:
-                    print("DIE 1!")
-            dest = ghost.move(screen, pos, ghosts)
-            if dest:
-                screen.set_at(prev, ghost.below)
-                below = screen.get_at(dest)
-                if below == c_pax:
-                    below = c_floor
-                ghost.below = below
-            if dest is None:
-                dest = prev
-            if dest == pos:
-                # collide!
-                if invis:
-                    print("nom 2")
-                    ghost.die()
-                else:
-                    print("DIE 2!")
-            if not ghost.dead:
-                screen.set_at(dest, ghost.get_color(n, invis))
-        pygame.display.flip()
+        # frame rate
         clock.tick(20)
 
-        # events
+        # fetch events
         for event in pygame.event.get():
             # close button or something
             if event.type == pygame.QUIT:
@@ -295,6 +208,119 @@ def main():
                     kl = False
                 elif event.key == pygame.K_RIGHT:
                     kr = False
+
+        if state == "reset":
+            print("RESET")
+            ku, kd, kl, kr = (False, False, False, False)
+            n = 0
+            screen.fill(c_floor)
+            dots = 0
+            delay = 0
+            invis = 0
+            ghosts = []
+            # parse board from def
+            for y in range(screen.get_height()):
+                for x in range(screen.get_width()):
+                    c = board[y][x]
+                    if c == "#":
+                        screen.set_at((x, y), c_wall)
+                    elif c == ".":
+                        dots += 1
+                        screen.set_at((x, y), c_dot)
+                    elif c == "c":
+                        pos = (x, y)
+                    elif c == "o":
+                        dots += 1
+                        screen.set_at((x, y), c_power)
+                    elif c == "m":
+                        ghosts.append(Ghost((x, y)))
+            state = "wait"
+        elif state == "wait":
+            for ghost in ghosts:
+                screen.set_at(ghost.pos, ghost.get_color())
+            screen.set_at(pos, c_pax)
+            if ku or kd or kl or kr:
+                print("GO")
+                state = "run"
+        elif state == "run":
+            n += 1
+            if invis:
+                invis -= 1
+            dest = None
+            if delay:
+                delay -= 1
+            else:
+                if ku:
+                    dest = pos[0], (pos[1] - 1) % screen.get_height()
+                elif kd:
+                    dest = pos[0], (pos[1] + 1) % screen.get_height()
+                elif kl:
+                    dest = (pos[0] - 1) % screen.get_width(), pos[1]
+                elif kr:
+                    dest = (pos[0] + 1) % screen.get_width(), pos[1]
+            if dest is not None:
+                ghost = ghost_at(ghosts, dest)
+                if ghost:
+                    # eat what is below flor
+                    at_dest = ghost.below
+                else:
+                    at_dest = screen.get_at(dest)
+                if at_dest == c_wall:
+                    # cannot enter walls
+                    pass
+                else:
+                    if at_dest == c_power:
+                        invis = INVIS_TIME
+                    if at_dest == c_dot or at_dest == c_power:
+                        dots -= 1
+                        print("Dots:", dots)
+                        if dots == 0:
+                            print("WIN!")
+                            state = "win"
+                            continue
+                    screen.set_at(pos, c_floor)
+                    pos = dest
+                    delay = 3
+
+            screen.set_at(pos, c_pax)
+            for ghost in ghosts:
+                ghost.revive(screen)
+                if ghost.dead:
+                    continue
+                prev = ghost.pos
+                if prev == pos:
+                    # player moved onto ghost
+                    if invis:
+                        print("nom 1")
+                        ghost.die()
+                        continue
+                    else:
+                        print("DIE 1!")
+                        state = "die"
+                dest = ghost.move(screen, pos, ghosts)
+                if dest:
+                    screen.set_at(prev, ghost.below)
+                    below = screen.get_at(dest)
+                    if below == c_pax:
+                        below = c_floor
+                    ghost.below = below
+                if dest is None:
+                    dest = prev
+                if dest == pos:
+                    # collide!
+                    if invis:
+                        print("nom 2")
+                        ghost.die()
+                    else:
+                        print("DIE 2!")
+                        state = "die"
+                if not ghost.dead:
+                    screen.set_at(dest, ghost.get_color(n, invis))
+        else:
+            print("invalid state", state)
+            state = "reset"
+
+        pygame.display.flip()
 
 
 if __name__ == '__main__':
